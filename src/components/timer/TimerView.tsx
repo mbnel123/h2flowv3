@@ -10,7 +10,7 @@ import {
   TemplateInfo,
   PhaseInfo,
   NextPhaseInfo
-} from '../TimerComponents';
+} from './TimerComponents';
 import TemplateSelector from '../TemplateSelector';
 import IntegratedStatsDisplay from './IntegratedStatsDisplay';
 import TimerHeader from './TimerHeader';
