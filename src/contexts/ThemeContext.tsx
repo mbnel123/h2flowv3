@@ -30,14 +30,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light');
 
-  // Initialize theme from localStorage or system preference
+  // Initialize theme from system preference (localStorage removed for Claude artifacts)
   useEffect(() => {
-    const savedTheme = localStorage.getItem(storageKey) as Theme;
-    if (savedTheme && ['light', 'dark', 'system'].includes(savedTheme)) {
-      setThemeState(savedTheme);
-    } else {
-      setThemeState(defaultTheme);
-    }
+    setThemeState(defaultTheme);
   }, [defaultTheme, storageKey]);
 
   // Update resolved theme based on current theme and system preference
@@ -80,7 +75,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(storageKey, newTheme);
+    // localStorage removed for Claude artifacts compatibility
   };
 
   const toggleTheme = () => {
