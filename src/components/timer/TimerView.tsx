@@ -1,21 +1,21 @@
-// src/components/TimerView.tsx
+// src/components/timer/TimerView.tsx
 import React, { useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { onAuthStateChange } from '../firebase/authService';
-import { TimerCelebrations, useMilestoneTracker } from './SuccessAnimations.tsx';
-import { useTheme } from '../contexts/ThemeContext.tsx';
+import { onAuthStateChange } from '../../firebase/authService';
+import { TimerCelebrations, useMilestoneTracker } from '../SuccessAnimations.tsx';
+import { useTheme } from '../../contexts/ThemeContext.tsx';
 import { 
   TimerLoadingSkeleton, 
   CircularProgress, 
   TemplateInfo,
   PhaseInfo,
   NextPhaseInfo
-} from './TimerComponents.tsx';
-import TemplateSelector from './TemplateSelector.tsx';
+} from '../TimerComponents.tsx';
+import TemplateSelector from '../TemplateSelector.tsx';
 import IntegratedStatsDisplay from './IntegratedStatsDisplay.tsx';
 import TimerHeader from './TimerHeader.tsx';
 import TimerControls from './TimerControls.tsx';
-import { useTimerLogic } from '../hooks/useTimerLogic.ts';
+import { useTimerLogic } from '../../hooks/useTimerLogic.ts';
 
 interface TimerViewProps {
   setCurrentView: (view: string) => void;
