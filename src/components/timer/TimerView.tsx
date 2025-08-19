@@ -148,6 +148,99 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
       <div className={`min-h-screen flex items-center justify-center transition-theme ${
         resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'
       }`}>
+        <div className="text-center">
+          <div className="text-4xl mb-4">🔒</div>
+          <p className={`transition-theme ${
+            resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            Please log in to use the timer
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (initialLoading) {
+    return <TimerLoadingSkeleton />;
+  }
+
+  return (
+    <div className={`min-h-screen flex flex-col transition-theme ${
+      resolvedTheme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
+        : 'bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100'
+    }`}>
+      {/* Success Animations */}
+      {showCelebrations && (
+        <TimerCelebrations
+          celebrations={celebrations}
+          onRemoveCelebration={(id) => {
+            removeCelebration(id);
+            console.log('🎉 Celebration completed');
+          }}
+        />
+      )}
+
+      {/* Header */}
+      <TimerHeader
+        resolvedTheme={resolvedTheme}
+        setCurrentView={setCurrentView}
+        syncStatus={syncStatus}
+        isOnline={isOnline}
+        lastSyncTime={lastSyncTime}
+        multiDeviceActivity={multiDeviceActivity}
+        getProgress={getProgress}
+      />
+
+      {/* Error Display */}
+      {error && (
+        <div className={`p-4 border-b transition-theme ${
+          resolvedTheme === 'dark'
+            ? 'bg-red-900/20 border-red-800'
+            : 'bg-red-50 border-red-200'
+        }`}>
+          <p className={`text-sm transition-theme ${
+            resolvedTheme === 'dark' ? 'text-red-400' : 'text-red-600'
+          }`}>
+            {error}
+          </p>
+          <button 
+            onClick={() => setError(null)}
+            className={`text-xs mt-1 underline transition-theme ${
+              resolvedTheme === 'dark' 
+                ? 'text-red-300 hover:text-red-200' 
+                : 'text-red-800 hover:text-red-900'
+            }`}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Main Timer Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
+        {/* Integrated Stats */}
+        {fastingStreak && (
+          <div className="w-full max-w-md mb-6">
+            <IntegratedStatsDisplay 
+              streak={fastingStreak} 
+              loading={streakLoading} 
+              resolvedTheme={resolvedTheme}
+              isActive={isActive}
+              elapsedTime={elapsedTime}
+              targetHours={targetHours}
+            />
+          </div>
+        )}
+
+        {/* Current Template Info */}
+        {currentTemplate && !isActive && (
+          <TemplateInfo 
+            template={currentTemplate}
+            onRemove={() => setCurrentTemplate(null)}
+          />
+        )}
+
         <div className="relative mb-6">
           <CircularProgress 
             progress={getProgress()} 
@@ -257,97 +350,4 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
   );
 };
 
-export default TimerView;text-center">
-          <div className="text-4xl mb-4">🔒</div>
-          <p className={`transition-theme ${
-            resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-          }`}>
-            Please log in to use the timer
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (initialLoading) {
-    return <TimerLoadingSkeleton />;
-  }
-
-  return (
-    <div className={`min-h-screen flex flex-col transition-theme ${
-      resolvedTheme === 'dark' 
-        ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900' 
-        : 'bg-gradient-to-br from-gray-50 via-slate-50 to-gray-100'
-    }`}>
-      {/* Success Animations */}
-      {showCelebrations && (
-        <TimerCelebrations
-          celebrations={celebrations}
-          onRemoveCelebration={(id) => {
-            removeCelebration(id);
-            console.log('🎉 Celebration completed');
-          }}
-        />
-      )}
-
-      {/* Header */}
-      <TimerHeader
-        resolvedTheme={resolvedTheme}
-        setCurrentView={setCurrentView}
-        syncStatus={syncStatus}
-        isOnline={isOnline}
-        lastSyncTime={lastSyncTime}
-        multiDeviceActivity={multiDeviceActivity}
-        getProgress={getProgress}
-      />
-
-      {/* Error Display */}
-      {error && (
-        <div className={`p-4 border-b transition-theme ${
-          resolvedTheme === 'dark'
-            ? 'bg-red-900/20 border-red-800'
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <p className={`text-sm transition-theme ${
-            resolvedTheme === 'dark' ? 'text-red-400' : 'text-red-600'
-          }`}>
-            {error}
-          </p>
-          <button 
-            onClick={() => setError(null)}
-            className={`text-xs mt-1 underline transition-theme ${
-              resolvedTheme === 'dark' 
-                ? 'text-red-300 hover:text-red-200' 
-                : 'text-red-800 hover:text-red-900'
-            }`}
-          >
-            Dismiss
-          </button>
-        </div>
-      )}
-
-      {/* Main Timer Area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
-        {/* Integrated Stats - NOW INSIDE MAIN AREA */}
-        {fastingStreak && (
-          <div className="w-full max-w-md mb-6">
-            <IntegratedStatsDisplay 
-              streak={fastingStreak} 
-              loading={streakLoading} 
-              resolvedTheme={resolvedTheme}
-              isActive={isActive}
-              elapsedTime={elapsedTime}
-              targetHours={targetHours}
-            />
-          </div>
-        )}
-
-        {/* Current Template Info */}
-        {currentTemplate && !isActive && (
-          <TemplateInfo 
-            template={currentTemplate}
-            onRemove={() => setCurrentTemplate(null)}
-          />
-        )}
-
-        <div className="
+export default TimerView;
