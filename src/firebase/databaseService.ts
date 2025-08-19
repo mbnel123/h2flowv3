@@ -40,6 +40,14 @@ export interface WaterEntry {
   note?: string;
 }
 
+// 🔥 NEW: Streak interface
+export interface FastStreak {
+  currentStreak: number;
+  longestStreak: number;
+  lastFastDate: Date | null;
+  streakStartDate: Date | null;
+}
+
 // Real-time listener type
 export type FastListener = (fast: Fast | null) => void;
 export type UnsubscribeFunction = () => void;
@@ -368,5 +376,154 @@ export const getFastHistory = async (userId: string) => {
   } catch (error: any) {
     console.error('❌ Database: Error getting fast history:', error);
     return { fasts: [], error: error.message };
+  }
+};
+
+// 🔥 NEW: Calculate user's fasting streaks
+export const calculateFastingStreak = async (userId: string): Promise<{ streak: FastStreak | null, error: string | null }> => {
+  try {
+    console.log('🔥 Database: Calculating fasting streak for user:', userId);
+    
+    // Get all completed fasts, ordered by end date
+    const q = query(
+      collection(db, 'fasts'),
+      where('userId', '==', userId),
+      where('status', '==', 'completed'),
+      orderBy('endTime', 'desc')
+    );
+
+    const querySnapshot = await getDocs(q);
+    
+    if (querySnapshot.empty) {
+      console.log('🚫 Database: No completed fasts found');
+      return { 
+        streak: {
+          currentStreak: 0,
+          longestStreak: 0,
+          lastFastDate: null,
+          streakStartDate: null
+        }, 
+        error: null 
+      };
+    }
+
+    const completedFasts: Fast[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      if (data.endTime) {
+        completedFasts.push({
+          id: doc.id,
+          ...data,
+          startTime: data.startTime.toDate(),
+          endTime: data.endTime.toDate(),
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+          waterIntake: []
+        });
+      }
+    });
+
+    // Group fasts by date (ignore time)
+    const fastsByDate = new Map<string, Fast[]>();
+    completedFasts.forEach(fast => {
+      if (fast.endTime) {
+        const dateKey = fast.endTime.toISOString().split('T')[0]; // YYYY-MM-DD
+        if (!fastsByDate.has(dateKey)) {
+          fastsByDate.set(dateKey, []);
+        }
+        fastsByDate.get(dateKey)!.push(fast);
+      }
+    });
+
+    // Sort dates descending
+    const sortedDates = Array.from(fastsByDate.keys()).sort().reverse();
+    
+    if (sortedDates.length === 0) {
+      return { 
+        streak: {
+          currentStreak: 0,
+          longestStreak: 0,
+          lastFastDate: null,
+          streakStartDate: null
+        }, 
+        error: null 
+      };
+    }
+
+    // Calculate current streak
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let streakStartDate: Date | null = null;
+    let tempStreakLength = 0;
+    
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    // Check if current streak is active (fasted today or yesterday)
+    let streakActive = sortedDates[0] === todayStr || sortedDates[0] === yesterdayStr;
+    
+    if (streakActive) {
+      let currentDate = new Date(sortedDates[0]);
+      let streakIndex = 0;
+      
+      // Count consecutive days
+      while (streakIndex < sortedDates.length) {
+        const expectedDateStr = currentDate.toISOString().split('T')[0];
+        
+        if (sortedDates[streakIndex] === expectedDateStr) {
+          currentStreak++;
+          if (currentStreak === 1) {
+            streakStartDate = new Date(currentDate);
+          }
+          streakIndex++;
+        } else {
+          break;
+        }
+        
+        // Move to previous day
+        currentDate.setDate(currentDate.getDate() - 1);
+      }
+    }
+
+    // Calculate longest streak in history
+    for (let i = 0; i < sortedDates.length; i++) {
+      tempStreakLength = 1;
+      let currentDate = new Date(sortedDates[i]);
+      
+      // Look for consecutive days
+      for (let j = i + 1; j < sortedDates.length; j++) {
+        const nextDay = new Date(currentDate);
+        nextDay.setDate(nextDay.getDate() - 1);
+        const nextDayStr = nextDay.toISOString().split('T')[0];
+        
+        if (sortedDates[j] === nextDayStr) {
+          tempStreakLength++;
+          currentDate = nextDay;
+        } else {
+          break;
+        }
+      }
+      
+      longestStreak = Math.max(longestStreak, tempStreakLength);
+    }
+
+    const lastFastDate = completedFasts.length > 0 ? completedFasts[0].endTime! : null;
+
+    const streak: FastStreak = {
+      currentStreak,
+      longestStreak: Math.max(longestStreak, currentStreak),
+      lastFastDate,
+      streakStartDate
+    };
+
+    console.log('✅ Database: Streak calculated:', streak);
+    return { streak, error: null };
+
+  } catch (error: any) {
+    console.error('❌ Database: Error calculating streak:', error);
+    return { streak: null, error: error.message };
   }
 };
