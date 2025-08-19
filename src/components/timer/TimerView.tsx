@@ -15,6 +15,7 @@ import TemplateSelector from '../TemplateSelector';
 import IntegratedStatsDisplay from './IntegratedStatsDisplay';
 import TimerHeader from './TimerHeader';
 import TimerControls from './TimerControls';
+import WarningModal from '../WarningModal';
 import { useTimerLogic } from '../../hooks/useTimerLogic';
 
 interface TimerViewProps {
@@ -46,9 +47,11 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
     targetHours,
     dailyWaterIntake,
     showStopConfirmation,
+    showWarningModal,
     previousElapsedTime,
     showCelebrations,
     handleStartFast,
+    proceedWithFastStart,
     pauseFast,
     resumeFast,
     stopFast,
@@ -57,7 +60,8 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
     setShowStopConfirmation,
     setShowTemplateSelector,
     setShowCelebrations,
-    setCurrentTemplate
+    setCurrentTemplate,
+    setShowWarningModal
   } = useTimerLogic(user, setCurrentView);
 
   // Success animations integration
@@ -144,7 +148,116 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
       <div className={`min-h-screen flex items-center justify-center transition-theme ${
         resolvedTheme === 'dark' ? 'bg-gray-900' : 'bg-white'
       }`}>
-        <div className="text-center">
+        <div className="relative mb-6">
+          <CircularProgress 
+            progress={getProgress()} 
+            elapsedTime={elapsedTime}
+            targetHours={targetHours}
+          />
+          <div className={`absolute top-4 right-4 rounded-full px-3 py-1 shadow-lg border transition-theme ${
+            resolvedTheme === 'dark' 
+              ? 'bg-gray-800 border-gray-700' 
+              : 'bg-white border-gray-200'
+          }`}>
+            <span className="text-sm font-semibold text-sky-600">{Math.round(getProgress())}%</span>
+          </div>
+        </div>
+        
+        {isActive && (
+          <div className="text-center max-w-lg space-y-4">
+            <PhaseInfo 
+              currentPhase={currentPhase}
+              dailyWaterIntake={dailyWaterIntake}
+              elapsedTime={elapsedTime}
+            />
+
+            {nextPhaseInfo && (
+              <NextPhaseInfo nextPhase={nextPhaseInfo} />
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Control Buttons */}
+      <TimerControls
+        isActive={isActive}
+        startTime={startTime}
+        loading={loading}
+        isOnline={isOnline}
+        resolvedTheme={resolvedTheme}
+        recentTemplates={recentTemplates}
+        showCelebrations={showCelebrations}
+        onStartFast={handleStartFast}
+        onResumeFast={resumeFast}
+        onPauseFast={pauseFast}
+        onStopConfirmation={() => setShowStopConfirmation(true)}
+        onShowTemplateSelector={() => setShowTemplateSelector(true)}
+        onSelectTemplate={handleSelectTemplate}
+        onToggleCelebrations={() => setShowCelebrations(!showCelebrations)}
+      />
+
+      {/* Warning Modal */}
+      <WarningModal
+        isOpen={showWarningModal}
+        onAccept={proceedWithFastStart}
+        onCancel={() => setShowWarningModal(false)}
+        targetHours={targetHours}
+      />
+
+      {/* Stop Confirmation Modal */}
+      {showStopConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black/70 flex items-center justify-center z-50">
+          <div className={`rounded-lg p-6 mx-4 max-w-sm w-full transition-theme ${
+            resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <h3 className={`text-lg font-semibold mb-4 transition-theme ${
+              resolvedTheme === 'dark' ? 'text-gray-100' : 'text-gray-800'
+            }`}>
+              Stop Your Fast?
+            </h3>
+            <p className={`mb-6 transition-theme ${
+              resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`}>
+              Are you sure you want to end your fast? You've been fasting for {Math.floor(elapsedTime / 3600)}h {Math.floor((elapsedTime % 3600) / 60)}m.
+            </p>
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setShowStopConfirmation(false)} 
+                disabled={loading}
+                className={`flex-1 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 ${
+                  resolvedTheme === 'dark'
+                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                }`}
+              >
+                Continue Fasting
+              </button>
+              <button 
+                onClick={stopFast} 
+                disabled={loading || !isOnline}
+                className="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {loading ? 'Stopping...' : 'Stop Fast'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Template Selector Modal */}
+      {showTemplateSelector && user && (
+        <TemplateSelector
+          userId={user.uid}
+          selectedDuration={targetHours}
+          onSelectTemplate={handleSelectTemplate}
+          onClose={() => setShowTemplateSelector(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default TimerView;text-center">
           <div className="text-4xl mb-4">🔒</div>
           <p className={`transition-theme ${
             resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -237,105 +350,4 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
           />
         )}
 
-        <div className="relative mb-6">
-          <CircularProgress 
-            progress={getProgress()} 
-            elapsedTime={elapsedTime}
-            targetHours={targetHours}
-          />
-          <div className={`absolute top-4 right-4 rounded-full px-3 py-1 shadow-lg border transition-theme ${
-            resolvedTheme === 'dark' 
-              ? 'bg-gray-800 border-gray-700' 
-              : 'bg-white border-gray-200'
-          }`}>
-            <span className="text-sm font-semibold text-sky-600">{Math.round(getProgress())}%</span>
-          </div>
-        </div>
-        
-        {isActive && (
-          <div className="text-center max-w-lg space-y-4">
-            <PhaseInfo 
-              currentPhase={currentPhase}
-              dailyWaterIntake={dailyWaterIntake}
-              elapsedTime={elapsedTime}
-            />
-
-            {nextPhaseInfo && (
-              <NextPhaseInfo nextPhase={nextPhaseInfo} />
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Control Buttons */}
-      <TimerControls
-        isActive={isActive}
-        startTime={startTime}
-        loading={loading}
-        isOnline={isOnline}
-        resolvedTheme={resolvedTheme}
-        recentTemplates={recentTemplates}
-        showCelebrations={showCelebrations}
-        onStartFast={handleStartFast}
-        onResumeFast={resumeFast}
-        onPauseFast={pauseFast}
-        onStopConfirmation={() => setShowStopConfirmation(true)}
-        onShowTemplateSelector={() => setShowTemplateSelector(true)}
-        onSelectTemplate={handleSelectTemplate}
-        onToggleCelebrations={() => setShowCelebrations(!showCelebrations)}
-      />
-
-      {/* Stop Confirmation Modal */}
-      {showStopConfirmation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-black/70 flex items-center justify-center z-50">
-          <div className={`rounded-lg p-6 mx-4 max-w-sm w-full transition-theme ${
-            resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white'
-          }`}>
-            <h3 className={`text-lg font-semibold mb-4 transition-theme ${
-              resolvedTheme === 'dark' ? 'text-gray-100' : 'text-gray-800'
-            }`}>
-              Stop Your Fast?
-            </h3>
-            <p className={`mb-6 transition-theme ${
-              resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-            }`}>
-              Are you sure you want to end your fast? You've been fasting for {Math.floor(elapsedTime / 3600)}h {Math.floor((elapsedTime % 3600) / 60)}m.
-            </p>
-            <div className="flex space-x-3">
-              <button 
-                onClick={() => setShowStopConfirmation(false)} 
-                disabled={loading}
-                className={`flex-1 py-3 rounded-lg font-medium transition-colors disabled:opacity-50 ${
-                  resolvedTheme === 'dark'
-                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              >
-                Continue Fasting
-              </button>
-              <button 
-                onClick={stopFast} 
-                disabled={loading || !isOnline}
-                className="flex-1 bg-red-600 text-white py-3 rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? 'Stopping...' : 'Stop Fast'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Template Selector Modal */}
-      {showTemplateSelector && user && (
-        <TemplateSelector
-          userId={user.uid}
-          selectedDuration={targetHours}
-          onSelectTemplate={handleSelectTemplate}
-          onClose={() => setShowTemplateSelector(false)}
-        />
-      )}
-    </div>
-  );
-};
-
-export default TimerView;
+        <div className="
