@@ -52,6 +52,9 @@ export const useTimerLogic = (user: User | null, setCurrentView: (view: string) 
   const [dailyWaterIntake, setDailyWaterIntake] = useState(0);
   const [showStopConfirmation, setShowStopConfirmation] = useState(false);
 
+  // Warning state
+  const [showWarningModal, setShowWarningModal] = useState(false);
+
   // Success animations state
   const [previousElapsedTime, setPreviousElapsedTime] = useState(0);
   const [personalRecord, setPersonalRecord] = useState(0);
@@ -211,12 +214,19 @@ export const useTimerLogic = (user: User | null, setCurrentView: (view: string) 
       setError('Cannot start fast while offline');
       return;
     }
-    
+
+    // Show warning modal instead of starting immediately
+    setShowWarningModal(true);
+  };
+
+  // Actual fast start after warning acceptance
+  const proceedWithFastStart = async () => {
+    setShowWarningModal(false);
     setLoading(true);
     setError(null);
     
     try {
-      const result = await startFast(user.uid, targetHours);
+      const result = await startFast(user!.uid, targetHours);
       
       if (result.error) {
         setError(`Failed to start fast: ${result.error}`);
@@ -231,7 +241,7 @@ export const useTimerLogic = (user: User | null, setCurrentView: (view: string) 
         
         if (serviceWorkerStatus === 'active') {
           const backgroundSuccess = await serviceWorkerManager.startBackgroundTimer({
-            userId: user.uid,
+            userId: user!.uid,
             fastId: result.id,
             startTime: new Date(),
             targetHours,
@@ -410,12 +420,14 @@ export const useTimerLogic = (user: User | null, setCurrentView: (view: string) 
     targetHours,
     dailyWaterIntake,
     showStopConfirmation,
+    showWarningModal,
     previousElapsedTime,
     personalRecord,
     showCelebrations,
 
     // Actions
     handleStartFast,
+    proceedWithFastStart,
     pauseFast,
     resumeFast,
     stopFast,
@@ -425,6 +437,7 @@ export const useTimerLogic = (user: User | null, setCurrentView: (view: string) 
     setShowTemplateSelector,
     setShowCelebrations,
     setCurrentTemplate,
-    setTargetHours
+    setTargetHours,
+    setShowWarningModal
   };
 };
