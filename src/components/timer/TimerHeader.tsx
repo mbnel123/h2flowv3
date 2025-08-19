@@ -2,7 +2,7 @@
 import React from 'react';
 import { Droplets, Info, Settings } from 'lucide-react';
 import { ThemeToggle } from "../../contexts/ThemeContext";
-import { ConnectionStatus, MultiDeviceActivity } from './TimerComponents.tsx';
+import { ConnectionStatus, MultiDeviceActivity } from './TimerComponents';
 
 interface TimerHeaderProps {
   resolvedTheme: string;
