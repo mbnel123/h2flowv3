@@ -1,6 +1,8 @@
 // src/components/history/AchievementsSection.tsx
-import React from 'react';
+import React, { useState } from 'react';
+import { Share2, Copy, Download } from 'lucide-react';
 import { FastStreak } from '../../firebase/databaseService';
+import { ShareService } from '../../services/shareService';
 
 interface AchievementsSectionProps {
   stats: {
@@ -14,6 +16,9 @@ interface AchievementsSectionProps {
 }
 
 const AchievementsSection: React.FC<AchievementsSectionProps> = ({ stats, fastingStreak }) => {
+  const [sharingId, setSharingId] = useState<number | null>(null);
+  const [shareStatus, setShareStatus] = useState<string>('');
+
   const achievements = [];
 
   // Basic achievements
@@ -126,6 +131,65 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({ stats, fastin
     });
   }
 
+  const handleShare = async (achievement: any, index: number) => {
+    setSharingId(index);
+    setShareStatus('Generating image...');
+
+    try {
+      const extendedStats = {
+        ...stats,
+        currentStreak: fastingStreak?.currentStreak || 0
+      };
+
+      const success = await ShareService.shareAchievement(
+        achievement,
+        extendedStats,
+        'Faster' // You could get actual user name here
+      );
+
+      if (success) {
+        setShareStatus('Shared successfully! 🎉');
+      } else {
+        setShareStatus('Failed to share');
+      }
+    } catch (error) {
+      setShareStatus('Error sharing');
+      console.error('Share error:', error);
+    }
+
+    setTimeout(() => {
+      setSharingId(null);
+      setShareStatus('');
+    }, 3000);
+  };
+
+  const handleCopyText = async (achievement: any, index: number) => {
+    setSharingId(index);
+    setShareStatus('Copying...');
+
+    try {
+      const extendedStats = {
+        ...stats,
+        currentStreak: fastingStreak?.currentStreak || 0
+      };
+
+      const success = await ShareService.copyAchievementText(achievement, extendedStats);
+
+      if (success) {
+        setShareStatus('Text copied! 📋');
+      } else {
+        setShareStatus('Failed to copy');
+      }
+    } catch (error) {
+      setShareStatus('Error copying');
+    }
+
+    setTimeout(() => {
+      setSharingId(null);
+      setShareStatus('');
+    }, 2000);
+  };
+
   if (achievements.length === 0) {
     return (
       <div className="mt-8 pt-6 border-t border-gray-200">
@@ -145,15 +209,51 @@ const AchievementsSection: React.FC<AchievementsSectionProps> = ({ stats, fastin
         {achievements.map((achievement, index) => (
           <div 
             key={index}
-            className={`${achievement.bgColor} border ${achievement.borderColor} rounded-lg p-4 flex items-center`}
+            className={`${achievement.bgColor} border ${achievement.borderColor} rounded-lg p-4 flex items-center justify-between`}
           >
-            <span className="text-2xl mr-3">{achievement.emoji}</span>
-            <div>
-              <div className={`font-medium ${achievement.textColor}`}>{achievement.title}</div>
-              <div className={`text-sm ${achievement.subtextColor}`}>{achievement.description}</div>
+            <div className="flex items-center">
+              <span className="text-2xl mr-3">{achievement.emoji}</span>
+              <div>
+                <div className={`font-medium ${achievement.textColor}`}>{achievement.title}</div>
+                <div className={`text-sm ${achievement.subtextColor}`}>{achievement.description}</div>
+              </div>
+            </div>
+
+            {/* Share buttons */}
+            <div className="flex items-center space-x-2">
+              {sharingId === index ? (
+                <div className="text-xs text-gray-600 px-3 py-1 bg-white/50 rounded-full">
+                  {shareStatus}
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => handleShare(achievement, index)}
+                    className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                    title="Share achievement"
+                  >
+                    <Share2 className="w-4 h-4 text-gray-600" />
+                  </button>
+                  <button
+                    onClick={() => handleCopyText(achievement, index)}
+                    className="p-2 hover:bg-white/50 rounded-lg transition-colors"
+                    title="Copy text"
+                  >
+                    <Copy className="w-4 h-4 text-gray-600" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
         ))}
+      </div>
+      
+      {/* Share instructions */}
+      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-xs text-blue-800">
+          💡 <strong>Tip:</strong> Share your achievements to inspire others on their fasting journey! 
+          The share button creates a beautiful image perfect for social media.
+        </p>
       </div>
     </div>
   );
