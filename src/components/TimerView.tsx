@@ -13,6 +13,7 @@ import {
 } from './TimerComponents.tsx';
 import TemplateSelector from './TemplateSelector.tsx';
 import StreakDisplay from './StreakDisplay.tsx';
+import IntegratedStatsDisplay from './IntegratedStatsDisplay.tsx';
 import TimerHeader from './TimerHeader.tsx';
 import TimerControls from './TimerControls.tsx';
 import { useTimerLogic } from '../hooks/useTimerLogic.ts';
@@ -213,16 +214,17 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
         </div>
       )}
 
-      {/* Streak Display */}
-      <div className="px-6 pt-4">
-        {fastingStreak && (
-          <StreakDisplay 
-            streak={fastingStreak} 
-            loading={streakLoading} 
-            resolvedTheme={resolvedTheme} 
-          />
-        )}
-      </div>
+      {/* Integrated Stats Display - Better placement */}
+      {fastingStreak && (
+        <IntegratedStatsDisplay 
+          streak={fastingStreak} 
+          loading={streakLoading} 
+          resolvedTheme={resolvedTheme}
+          isActive={isActive}
+          elapsedTime={elapsedTime}
+          targetHours={targetHours}
+        />
+      )}
 
       {/* Main Timer Area */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
