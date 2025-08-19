@@ -1,6 +1,7 @@
+// src/App.tsx
 import React, { useState } from 'react';
-import TimerView from './components/TimerView';
-import HistoryView from './components/HistoryView';
+import TimerView from './components/timer/TimerView';
+import HistoryView from './components/history/HistoryView';
 import InfoView from './components/InfoView';
 import WaterView from './components/WaterView';
 import SettingsView from './components/SettingsView';
