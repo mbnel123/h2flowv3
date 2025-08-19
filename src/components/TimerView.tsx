@@ -12,7 +12,6 @@ import {
   NextPhaseInfo
 } from './TimerComponents.tsx';
 import TemplateSelector from './TemplateSelector.tsx';
-import StreakDisplay from './StreakDisplay.tsx';
 import IntegratedStatsDisplay from './IntegratedStatsDisplay.tsx';
 import TimerHeader from './TimerHeader.tsx';
 import TimerControls from './TimerControls.tsx';
@@ -214,20 +213,22 @@ const TimerView: React.FC<TimerViewProps> = ({ setCurrentView }) => {
         </div>
       )}
 
-      {/* Integrated Stats Display - Better placement */}
-      {fastingStreak && (
-        <IntegratedStatsDisplay 
-          streak={fastingStreak} 
-          loading={streakLoading} 
-          resolvedTheme={resolvedTheme}
-          isActive={isActive}
-          elapsedTime={elapsedTime}
-          targetHours={targetHours}
-        />
-      )}
-
       {/* Main Timer Area */}
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-4">
+        {/* Integrated Stats - NOW INSIDE MAIN AREA */}
+        {fastingStreak && (
+          <div className="w-full max-w-md mb-6">
+            <IntegratedStatsDisplay 
+              streak={fastingStreak} 
+              loading={streakLoading} 
+              resolvedTheme={resolvedTheme}
+              isActive={isActive}
+              elapsedTime={elapsedTime}
+              targetHours={targetHours}
+            />
+          </div>
+        )}
+
         {/* Current Template Info */}
         {currentTemplate && !isActive && (
           <TemplateInfo 
