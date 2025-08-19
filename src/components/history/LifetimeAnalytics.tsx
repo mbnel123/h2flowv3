@@ -39,8 +39,8 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
             <Clock className="w-5 h-5 text-green-600 mr-2" />
             <span className="text-sm font-medium text-green-800">Total Hours</span>
           </div>
-          <div className="text-2xl font-bold text-green-900">{stats.totalHours}h</div>
-          <div className="text-xs text-green-600">{Math.round(stats.totalHours / 24)} days total</div>
+          <div className="text-2xl font-bold text-green-900">{Number(stats.totalHours).toFixed(2)}h</div>
+          <div className="text-xs text-green-600">{Number(stats.totalHours / 24).toFixed(2)} days total</div>
         </div>
         
         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
@@ -48,7 +48,7 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
             <BarChart3 className="w-5 h-5 text-purple-600 mr-2" />
             <span className="text-sm font-medium text-purple-800">Average Duration</span>
           </div>
-          <div className="text-2xl font-bold text-purple-900">{stats.averageDuration}h</div>
+          <div className="text-2xl font-bold text-purple-900">{Number(stats.averageDuration).toFixed(2)}h</div>
         </div>
         
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
@@ -56,7 +56,7 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
             <Award className="w-5 h-5 text-orange-600 mr-2" />
             <span className="text-sm font-medium text-orange-800">Longest Fast</span>
           </div>
-          <div className="text-2xl font-bold text-orange-900">{Math.round(stats.longestFast)}h</div>
+          <div className="text-2xl font-bold text-orange-900">{Number(stats.longestFast).toFixed(2)}h</div>
         </div>
       </div>
 
@@ -70,22 +70,22 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-emerald-700 mb-1">Ketosis Hours</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.ketosisHours}h</div>
+              <div className="text-2xl font-bold text-emerald-900">{Number(stats.ketosisHours).toFixed(2)}h</div>
               <div className="text-xs text-emerald-600">Fat burning time</div>
             </div>
             <div>
               <div className="text-sm text-emerald-700 mb-1">Autophagy Hours</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.autophagyHours}h</div>
+              <div className="text-2xl font-bold text-emerald-900">{Number(stats.autophagyHours).toFixed(2)}h</div>
               <div className="text-xs text-emerald-600">Cellular cleaning time</div>
             </div>
             <div>
               <div className="text-sm text-emerald-700 mb-1">Est. Cells Repaired</div>
-              <div className="text-xl font-bold text-emerald-900">{(stats.damagedCellsCleared / 1000000).toFixed(1)}M</div>
+              <div className="text-xl font-bold text-emerald-900">{Number(stats.damagedCellsCleared / 1000000).toFixed(2)}M</div>
               <div className="text-xs text-emerald-600">Damaged cells cleared</div>
             </div>
             <div>
               <div className="text-sm text-emerald-700 mb-1">Growth Hormone Hours</div>
-              <div className="text-2xl font-bold text-emerald-900">{stats.growthHormoneHours}h</div>
+              <div className="text-2xl font-bold text-emerald-900">{Number(stats.growthHormoneHours).toFixed(2)}h</div>
               <div className="text-xs text-emerald-600">Enhanced GH production</div>
             </div>
           </div>
@@ -102,7 +102,7 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
           <div className="flex items-center justify-between">
             <div>
               <div className="text-sm text-blue-700 mb-1">Success Rate</div>
-              <div className="text-3xl font-bold text-blue-900">{stats.completionRate}%</div>
+              <div className="text-3xl font-bold text-blue-900">{Number(stats.completionRate).toFixed(2)}%</div>
               <div className="text-xs text-blue-600">Completion Rate</div>
             </div>
             <div className="text-center">
