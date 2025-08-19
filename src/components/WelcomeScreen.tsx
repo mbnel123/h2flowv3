@@ -11,7 +11,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ setCurrentView }) => {
         <div className="text-8xl mb-8">💧</div>
         
         <h1 className="text-4xl font-bold text-gray-800 mb-4">
-          H2Flow
+          H2flOw
         </h1>
         
         <p className="text-xl text-gray-600 mb-8">
