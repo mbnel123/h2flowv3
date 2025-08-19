@@ -4,7 +4,6 @@ import { ArrowLeft, LogOut } from 'lucide-react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { onAuthStateChange, logout } from '../../firebase/authService';
 import { useHistoryData } from '../../hooks/useHistoryData';
-import AnalyticsBar from './AnalyticsBar';
 import UserProfileSection from './UserProfileSection';
 import FastingPatternsSection from './FastingPatternsSection';
 import LifetimeAnalytics from './LifetimeAnalytics';
@@ -27,17 +26,6 @@ const HistoryLoadingSkeleton = () => (
         </div>
         <div className="w-20 h-8 bg-red-100 animate-pulse rounded-lg"></div>
       </div>
-    </div>
-
-    {/* Analytics Bar Skeleton */}
-    <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 border-b border-blue-200 flex flex-wrap gap-8 items-center justify-between mb-8">
-      {[1,2,3,4,5].map(i => (
-        <div key={i} className="flex flex-col items-center">
-          <div className="text-4xl mb-2">⚪</div>
-          <div className="h-6 w-16 bg-gray-200 animate-pulse rounded mb-1"></div>
-          <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
-        </div>
-      ))}
     </div>
 
     <div className="p-6">
@@ -163,14 +151,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ setCurrentView }) => {
       )}
 
       <div className="p-6">
-        {/* Analytics Bar - NOW MOVED INSIDE */}
-        <div className="mb-8">
-          <AnalyticsBar 
-            fastingStreak={fastingStreak}
-            fastHistory={fastHistory}
-          />
-        </div>
-
         {/* User Profile Section */}
         <UserProfileSection 
           user={user}
@@ -179,10 +159,18 @@ const HistoryView: React.FC<HistoryViewProps> = ({ setCurrentView }) => {
         />
 
         {/* Fasting Patterns */}
-        <FastingPatternsSection stats={stats} />
+        <FastingPatternsSection 
+          stats={stats} 
+          fastingStreak={fastingStreak}
+          fastHistory={fastHistory}
+        />
 
         {/* Lifetime Analytics */}
-        <LifetimeAnalytics stats={stats} />
+        <LifetimeAnalytics 
+          stats={stats}
+          fastingStreak={fastingStreak}
+          fastHistory={fastHistory}
+        />
 
         {/* Fast History */}
         <FastHistoryList fastHistory={fastHistory} />
