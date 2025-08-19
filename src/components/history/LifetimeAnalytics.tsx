@@ -1,6 +1,6 @@
 // src/components/history/LifetimeAnalytics.tsx
 import React from 'react';
-import { TrendingUp, Clock, Award, BarChart3, Zap, Shield } from 'lucide-react';
+import { TrendingUp, Clock, Award, BarChart3, Zap, Shield, Trophy } from 'lucide-react';
 
 interface LifetimeAnalyticsProps {
   stats: {
@@ -16,15 +16,71 @@ interface LifetimeAnalyticsProps {
     immuneResets: number;
     growthHormoneHours: number;
   };
+  fastingStreak: any;
+  fastHistory: any[];
 }
 
-const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
+const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats, fastingStreak, fastHistory }) => {
+  // Calculate streak emojis
+  const getStreakEmoji = (streakDays: number) => {
+    if (streakDays >= 100) return '🔥💎';
+    if (streakDays >= 50) return '🔥⭐';
+    if (streakDays >= 30) return '🔥🚀';
+    if (streakDays >= 14) return '🔥💪';
+    if (streakDays >= 7) return '🔥✨';
+    if (streakDays >= 3) return '🔥🌟';
+    if (streakDays >= 1) return '🔥';
+    return '💭';
+  };
+
+  // Calculate quarterly trend
+  const getQuarterlyTrend = () => {
+    if (fastHistory.length < 2) return null;
+    const now = new Date();
+    const currentQuarter = Math.floor(now.getMonth() / 3);
+    const prevQuarter = (currentQuarter + 3 - 1) % 4;
+    const currentYear = now.getFullYear();
+    
+    const getQuarterFasts = (year: number, quarter: number) => fastHistory.filter(fast => {
+      const d = new Date(fast.startTime);
+      return d.getFullYear() === year && Math.floor(d.getMonth() / 3) === quarter;
+    });
+    
+    const currentQ = getQuarterFasts(currentYear, currentQuarter);
+    const prevQ = getQuarterFasts(currentYear, prevQuarter);
+    const currentAvg = currentQ.length > 0 ? currentQ.reduce((a, b) => a + (b.actualDuration || b.plannedDuration), 0) / currentQ.length : 0;
+    const prevAvg = prevQ.length > 0 ? prevQ.reduce((a, b) => a + (b.actualDuration || b.plannedDuration), 0) / prevQ.length : 0;
+    
+    if (prevAvg === 0) return null;
+    return Number(((currentAvg - prevAvg) / prevAvg) * 100).toFixed(1);
+  };
+
+  // Personal records
+  const getPersonalRecords = () => {
+    if (fastHistory.length === 0) return {};
+    return {
+      mostFastsInWeek: Math.max(...[...Array(52)].map((_, i) => {
+        const weekStart = new Date(new Date().getFullYear(), 0, 1 + i * 7);
+        const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+        return fastHistory.filter(f => new Date(f.startTime) >= weekStart && new Date(f.startTime) < weekEnd).length;
+      })),
+      mostHoursInMonth: Number(Math.max(...[...Array(12)].map((_, i) => {
+        const month = i;
+        return fastHistory.filter(f => new Date(f.startTime).getMonth() === month).reduce((a, b) => a + (b.actualDuration || b.plannedDuration), 0);
+      }))).toFixed(2),
+    };
+  };
+
+  const streak = fastingStreak?.currentStreak || 0;
+  const quarterlyTrend = getQuarterlyTrend();
+  const records = getPersonalRecords();
+
   return (
     <div className="mb-8">
       <h2 className="text-lg font-semibold text-gray-900 mb-6">📊 Lifetime Fasting Analytics</h2>
       
-      {/* Basic Stats Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* Enhanced Basic Stats Grid with Streak & Records */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
           <div className="flex items-center mb-2">
             <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
@@ -42,6 +98,17 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
           <div className="text-2xl font-bold text-green-900">{Number(stats.totalHours).toFixed(2)}h</div>
           <div className="text-xs text-green-600">{Number(stats.totalHours / 24).toFixed(2)} days total</div>
         </div>
+
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-center mb-2">
+            <span className="text-lg mr-2">{getStreakEmoji(streak)}</span>
+            <span className="text-sm font-medium text-red-800">Current Streak</span>
+          </div>
+          <div className="text-2xl font-bold text-red-900">{streak} days</div>
+          <div className="text-xs text-red-600">
+            {fastingStreak && fastingStreak.longestStreak > streak ? `Best: ${fastingStreak.longestStreak} days` : 'Personal record!'}
+          </div>
+        </div>
         
         <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
           <div className="flex items-center mb-2">
@@ -49,6 +116,9 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
             <span className="text-sm font-medium text-purple-800">Average Duration</span>
           </div>
           <div className="text-2xl font-bold text-purple-900">{Number(stats.averageDuration).toFixed(2)}h</div>
+          <div className="text-xs text-purple-600">
+            {quarterlyTrend ? (Number(quarterlyTrend) > 0 ? '+' : '') + quarterlyTrend + '% vs Q' : 'Per fast'}
+          </div>
         </div>
         
         <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
@@ -57,6 +127,18 @@ const LifetimeAnalytics: React.FC<LifetimeAnalyticsProps> = ({ stats }) => {
             <span className="text-sm font-medium text-orange-800">Longest Fast</span>
           </div>
           <div className="text-2xl font-bold text-orange-900">{Number(stats.longestFast).toFixed(2)}h</div>
+          <div className="text-xs text-orange-600">Personal record</div>
+        </div>
+
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center mb-2">
+            <Trophy className="w-5 h-5 text-yellow-600 mr-2" />
+            <span className="text-sm font-medium text-yellow-800">Records</span>
+          </div>
+          <div className="text-sm font-bold text-yellow-900">
+            {records.mostFastsInWeek || 0}/wk
+          </div>
+          <div className="text-xs text-yellow-600">{records.mostHoursInMonth || '0'}h/mo peak</div>
         </div>
       </div>
 
