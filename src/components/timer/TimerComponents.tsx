@@ -1,6 +1,6 @@
 import React from 'react';
 import { Wifi, WifiOff, Smartphone } from 'lucide-react';
-import { useTheme } from '../contexts/ThemeContext.tsx';
+import { useTheme } from '../../contexts/ThemeContext.tsx';
 
 // Enhanced Loading Skeleton Component with Dark Mode
 export const TimerLoadingSkeleton = () => {
