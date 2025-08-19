@@ -130,12 +130,6 @@ const HistoryView: React.FC<HistoryViewProps> = ({ setCurrentView }) => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Analytics Bar */}
-      <AnalyticsBar 
-        fastingStreak={fastingStreak}
-        fastHistory={fastHistory}
-      />
-
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -169,6 +163,14 @@ const HistoryView: React.FC<HistoryViewProps> = ({ setCurrentView }) => {
       )}
 
       <div className="p-6">
+        {/* Analytics Bar - NOW MOVED INSIDE */}
+        <div className="mb-8">
+          <AnalyticsBar 
+            fastingStreak={fastingStreak}
+            fastHistory={fastHistory}
+          />
+        </div>
+
         {/* User Profile Section */}
         <UserProfileSection 
           user={user}
