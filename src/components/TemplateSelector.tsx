@@ -97,45 +97,13 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     return 'text-red-600 bg-red-50 border-red-200';
   };
 
-  const getCategoryInfo = (category: string) => {
-    const info = {
-      beginner: { 
-        title: 'Beginner Templates', 
-        description: 'Perfect for starting your fasting journey',
-        icon: '🌱',
-        color: 'bg-green-50 border-green-200 text-green-800'
-      },
-      intermediate: { 
-        title: 'Intermediate Templates', 
-        description: 'Ready for longer fasts and better results',
-        icon: '⚡',
-        color: 'bg-blue-50 border-blue-200 text-blue-800'
-      },
-      advanced: { 
-        title: 'Advanced Templates', 
-        description: 'Extended fasts for experienced fasters',
-        icon: '🔥',
-        color: 'bg-red-50 border-red-200 text-red-800'
-      },
-      custom: { 
-        title: 'Custom Templates', 
-        description: 'Your personalized fasting templates',
-        icon: '⭐',
-        color: 'bg-purple-50 border-purple-200 text-purple-800'
-      }
-    };
-    return info[category as keyof typeof info];
-  };
-
   const currentTemplates = getCurrentTemplates();
-  const categoryInfo = getCategoryInfo(selectedCategory);
-
   const emojiOptions = ['⚡', '🔥', '💪', '🧘', '🌟', '💎', '🚀', '⭐', '🌱', '🛡️', '🔄', '🧠'];
 
   if (showCreateForm) {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl w-full max-w-md">
+        <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-bold text-gray-900">Create Custom Template</h2>
@@ -253,10 +221,10 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col">
+      <div className="bg-white rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col">
         {/* Header */}
         <div className="flex-shrink-0 p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Choose Fast Template</h2>
             <button
               onClick={onClose}
@@ -266,73 +234,58 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             </button>
           </div>
 
-          {/* Category Navigation */}
-          <div className="grid grid-cols-4 gap-3">
+          {/* Compact Category Navigation */}
+          <div className="flex space-x-2">
             {['beginner', 'intermediate', 'advanced', 'custom'].map((category) => {
-              const info = getCategoryInfo(category);
               const count = templates.filter(t => t.category === category).length;
               return (
                 <button
                   key={category}
                   onClick={() => setSelectedCategory(category as any)}
                   className={`
-                    p-4 rounded-xl border-2 transition-all text-left
+                    px-4 py-2 rounded-lg border transition-all text-sm font-medium
                     ${selectedCategory === category
-                      ? info.color + ' border-current'
-                      : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
                     }
                   `}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-2xl">{info.icon}</span>
-                    <span className="text-sm font-medium">({count})</span>
-                  </div>
-                  <div className="font-semibold text-sm mb-1">{category.charAt(0).toUpperCase() + category.slice(1)}</div>
-                  <div className="text-xs opacity-75">{info.description}</div>
+                  {category.charAt(0).toUpperCase() + category.slice(1)} ({count})
                 </button>
               );
             })}
           </div>
         </div>
 
-        {/* Current Category Header */}
-        <div className={`flex-shrink-0 p-4 border-b ${categoryInfo.color}`}>
-          <div className="flex items-center">
-            <span className="text-2xl mr-3">{categoryInfo.icon}</span>
-            <div>
-              <h3 className="font-semibold">{categoryInfo.title}</h3>
-              <p className="text-sm opacity-75">{categoryInfo.description}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Templates Grid - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Templates Grid - Fixed Height */}
+        <div className="flex-1 p-6 min-h-0">
           {currentTemplates.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-4xl mb-4">📋</div>
-              <p className="text-gray-600 mb-4">
-                {selectedCategory === 'custom' 
-                  ? 'No custom templates yet. Create your first one!'
-                  : 'No templates in this category yet.'
-                }
-              </p>
-              {selectedCategory === 'custom' && (
-                <button
-                  onClick={() => setShowCreateForm(true)}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Create Custom Template
-                </button>
-              )}
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <div className="text-4xl mb-4">📋</div>
+                <p className="text-gray-600 mb-4">
+                  {selectedCategory === 'custom' 
+                    ? 'No custom templates yet. Create your first one!'
+                    : 'No templates in this category yet.'
+                  }
+                </p>
+                {selectedCategory === 'custom' && (
+                  <button
+                    onClick={() => setShowCreateForm(true)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    Create Custom Template
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 h-full">
               {currentTemplates.map((template) => (
                 <div
                   key={template.id}
                   className={`
-                    border-2 rounded-xl p-5 cursor-pointer transition-all hover:shadow-lg hover:scale-105
+                    border-2 rounded-xl p-4 cursor-pointer transition-all hover:shadow-lg hover:scale-105 h-fit
                     ${selectedDuration === template.duration 
                       ? 'border-blue-500 bg-blue-50 shadow-lg' 
                       : 'border-gray-200 hover:border-gray-300'
@@ -341,18 +294,18 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   onClick={() => handleSelectTemplate(template)}
                 >
                   {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center">
-                      <span className="text-3xl mr-3">{template.icon}</span>
-                      <div>
-                        <h3 className="font-semibold text-gray-900 text-lg">{template.name}</h3>
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center min-w-0 flex-1">
+                      <span className="text-2xl mr-2 flex-shrink-0">{template.icon}</span>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-gray-900 text-sm truncate">{template.name}</h3>
                         <span className="text-xs text-gray-500 capitalize">{template.category}</span>
                       </div>
                     </div>
                     
                     {/* Actions */}
                     {(template.isCustom || selectedCategory !== 'custom') && (
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-1 flex-shrink-0 ml-2">
                         {template.isCustom && (
                           <>
                             <button
@@ -360,18 +313,18 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                                 e.stopPropagation();
                                 setShowCreateForm(true);
                               }}
-                              className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+                              className="p-1 text-gray-400 hover:text-blue-600 transition-colors rounded"
                             >
-                              <Edit3 className="w-4 h-4" />
+                              <Edit3 className="w-3 h-3" />
                             </button>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleDeleteTemplate(template);
                               }}
-                              className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-red-50"
+                              className="p-1 text-gray-400 hover:text-red-600 transition-colors rounded"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3" />
                             </button>
                           </>
                         )}
@@ -380,9 +333,9 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                             e.stopPropagation();
                             handleDuplicateTemplate(template);
                           }}
-                          className="p-2 text-gray-400 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50"
+                          className="p-1 text-gray-400 hover:text-green-600 transition-colors rounded"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-3 h-3" />
                         </button>
                       </div>
                     )}
@@ -390,46 +343,46 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
                   {/* Description */}
                   {template.description && (
-                    <p className="text-sm text-gray-600 mb-4">{template.description}</p>
+                    <p className="text-xs text-gray-600 mb-3 line-clamp-2">{template.description}</p>
                   )}
 
                   {/* Duration */}
-                  <div className={`inline-flex items-center px-4 py-2 rounded-xl text-lg font-bold mb-4 border-2 ${getDurationColor(template.duration)}`}>
-                    <Clock className="w-5 h-5 mr-2" />
-                    {template.duration} hours
+                  <div className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold mb-3 border ${getDurationColor(template.duration)}`}>
+                    <Clock className="w-3 h-3 mr-1" />
+                    {template.duration}h
                   </div>
 
                   {/* Details */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {template.waterGoal && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Droplets className="w-4 h-4 mr-3 text-blue-500" />
-                        <span><strong>{template.waterGoal}ml</strong> water goal</span>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Droplets className="w-3 h-3 mr-2 text-blue-500 flex-shrink-0" />
+                        <span><strong>{template.waterGoal}ml</strong> water</span>
                       </div>
                     )}
                     
                     {template.usageCount > 0 && (
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Star className="w-4 h-4 mr-3 text-yellow-500" />
-                        <span>Used <strong>{template.usageCount}</strong> time{template.usageCount !== 1 ? 's' : ''}</span>
+                      <div className="flex items-center text-xs text-gray-600">
+                        <Star className="w-3 h-3 mr-2 text-yellow-500 flex-shrink-0" />
+                        <span>Used <strong>{template.usageCount}</strong>x</span>
                       </div>
                     )}
                   </div>
 
                   {/* Tags */}
                   {template.tags.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {template.tags.slice(0, 3).map((tag) => (
+                    <div className="mt-3 flex flex-wrap gap-1">
+                      {template.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
-                          className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium"
+                          className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium"
                         >
                           #{tag}
                         </span>
                       ))}
-                      {template.tags.length > 3 && (
-                        <span className="text-xs text-gray-500 px-2 py-1">
-                          +{template.tags.length - 3} more
+                      {template.tags.length > 2 && (
+                        <span className="text-xs text-gray-500 px-1">
+                          +{template.tags.length - 2}
                         </span>
                       )}
                     </div>
