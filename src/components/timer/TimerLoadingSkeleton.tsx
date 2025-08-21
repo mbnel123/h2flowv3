@@ -1,6 +1,6 @@
 // src/components/timer/TimerLoadingSkeleton.tsx
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, SafeAreaView } from 'react';
+import { View, StyleSheet, Animated, SafeAreaView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface TimerLoadingSkeletonProps {
@@ -152,7 +152,7 @@ const TimerLoadingSkeleton: React.FC<TimerLoadingSkeletonProps> = ({ theme }) =>
               <SkeletonItem width={128} height={24} style={styles.nextPhaseTimeSkeleton} theme={theme} />
               <SkeletonItem width={224} height={16} style={styles.nextPhaseDescSkeleton} theme={theme} />
             </View>
-          </div>
+          </View>
         </View>
 
         {/* Control Buttons Skeleton */}
