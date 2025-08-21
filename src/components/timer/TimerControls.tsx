@@ -1,14 +1,37 @@
-// src/components/TimerControls.tsx
+// src/components/timer/TimerControls.tsx
 import React from 'react';
-import { Play, Pause, Square } from 'lucide-react';
-import { FastTemplate } from '../services/templateService.ts';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+
+// Mock icons - replace with actual icon library when available
+const PlayIcon = ({ color }: { color: string }) => <Text style={{ color, fontSize: 20 }}>▶️</Text>;
+const PauseIcon = ({ color }: { color: string }) => <Text style={{ color, fontSize: 20 }}>⏸️</Text>;
+const SquareIcon = ({ color }: { color: string }) => <Text style={{ color, fontSize: 20 }}>⏹️</Text>;
+
+interface FastTemplate {
+  id: string;
+  name: string;
+  duration: number;
+  icon: string;
+  category: string;
+  description?: string;
+}
 
 interface TimerControlsProps {
   isActive: boolean;
   startTime: number | null;
   loading: boolean;
   isOnline: boolean;
-  resolvedTheme: string;
+  theme: {
+    primary: string;
+    background: string;
+    backgroundSecondary: string;
+    text: string;
+    textSecondary: string;
+    warning: string;
+    error: string;
+    success: string;
+  };
   recentTemplates: FastTemplate[];
   showCelebrations: boolean;
   onStartFast: () => void;
@@ -25,7 +48,7 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   startTime,
   loading,
   isOnline,
-  resolvedTheme,
+  theme,
   recentTemplates,
   showCelebrations,
   onStartFast,
@@ -37,135 +60,378 @@ const TimerControls: React.FC<TimerControlsProps> = ({
   onToggleCelebrations
 }) => {
   return (
-    <div className="p-6">
+    <View style={styles.container}>
       {/* Quick Template Access */}
       {!isActive && recentTemplates.length > 0 && (
-        <div className="mb-4">
-          <p className={`text-sm mb-2 transition-theme ${
-            resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-          }`}>
+        <View style={styles.templatesSection}>
+          <Text style={[styles.templatesLabel, { color: theme.textSecondary }]}>
             Recent templates:
-          </p>
-          <div className="flex space-x-2 overflow-x-auto">
+          </Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={styles.templatesScroll}
+          >
             {recentTemplates.map((template) => (
-              <button
+              <TouchableOpacity
                 key={template.id}
-                onClick={() => onSelectTemplate(template)}
-                className={`flex-shrink-0 flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
-                  resolvedTheme === 'dark'
-                    ? 'bg-gray-700 hover:bg-gray-600'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
+                onPress={() => onSelectTemplate(template)}
+                style={[styles.templateButton, { 
+                  backgroundColor: theme.backgroundSecondary,
+                  borderColor: theme.primary + '30'
+                }]}
+                activeOpacity={0.7}
               >
-                <span className="text-lg">{template.icon}</span>
-                <span className={`text-sm font-medium transition-theme ${
-                  resolvedTheme === 'dark' ? 'text-gray-200' : 'text-gray-700'
-                }`}>
+                <Text style={styles.templateIcon}>{template.icon}</Text>
+                <Text style={[styles.templateName, { color: theme.text }]}>
                   {template.name}
-                </span>
-                <span className={`text-xs transition-theme ${
-                  resolvedTheme === 'dark' ? 'text-gray-500' : 'text-gray-500'
-                }`}>
+                </Text>
+                <Text style={[styles.templateDuration, { color: theme.textSecondary }]}>
                   {template.duration}h
-                </span>
-              </button>
+                </Text>
+              </TouchableOpacity>
             ))}
-          </div>
-        </div>
+          </ScrollView>
+        </View>
       )}
 
       {/* Main Control Buttons */}
-      <div className="flex justify-center space-x-4">
+      <View style={styles.mainControls}>
         {!isActive ? (
           startTime ? (
-            <>
-              <button 
-                onClick={onResumeFast} 
+            // Paused state - show Resume and Stop
+            <View style={styles.controlRow}>
+              <TouchableOpacity 
+                onPress={onResumeFast} 
                 disabled={loading || !isOnline}
-                className="text-white px-12 py-4 rounded-2xl font-semibold text-lg transition-opacity hover:opacity-90 flex items-center shadow-lg disabled:opacity-50"
-                style={{background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'}}
+                activeOpacity={0.8}
+                style={[styles.resumeButtonContainer, { opacity: (loading || !isOnline) ? 0.5 : 1 }]}
               >
-                <Play className="w-6 h-6 mr-3" />Resume Fast
-              </button>
-              <button 
-                onClick={onStopConfirmation} 
-                disabled={loading || !isOnline}
-                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 rounded-2xl font-semibold transition-all flex items-center shadow-lg disabled:opacity-50"
-              >
-                <Square className="w-5 h-5 mr-2" />Stop Fast
-              </button>
-            </>
-          ) : (
-            <div className="flex space-x-4">
-              <button 
-                onClick={onStartFast} 
-                disabled={loading || !isOnline}
-                className="text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-opacity hover:opacity-90 flex items-center shadow-lg disabled:opacity-50"
-                style={{background: 'linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%)'}}
-              >
-                <Play className="w-6 h-6 mr-3" />
-                {loading ? 'Starting...' : 'Start Fast'}
-              </button>
+                <LinearGradient
+                  colors={['#3B82F6', '#1D4ED8']}
+                  style={styles.resumeButton}
+                >
+                  <PlayIcon color="white" />
+                  <Text style={styles.resumeButtonText}>Resume Fast</Text>
+                </LinearGradient>
+              </TouchableOpacity>
               
-              <button 
-                onClick={onShowTemplateSelector} 
+              <TouchableOpacity 
+                onPress={onStopConfirmation} 
                 disabled={loading || !isOnline}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-colors flex items-center shadow-lg disabled:opacity-50"
+                style={[styles.stopButton, { 
+                  backgroundColor: theme.error,
+                  opacity: (loading || !isOnline) ? 0.5 : 1 
+                }]}
+                activeOpacity={0.8}
               >
-                📋 Templates
-              </button>
-            </div>
+                <SquareIcon color="white" />
+                <Text style={styles.stopButtonText}>Stop Fast</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            // Not started - show Start and Templates
+            <View style={styles.controlRow}>
+              <TouchableOpacity 
+                onPress={onStartFast} 
+                disabled={loading || !isOnline}
+                activeOpacity={0.8}
+                style={[styles.startButtonContainer, { opacity: (loading || !isOnline) ? 0.5 : 1 }]}
+              >
+                <LinearGradient
+                  colors={['#3B82F6', '#1D4ED8']}
+                  style={styles.startButton}
+                >
+                  <PlayIcon color="white" />
+                  <Text style={styles.startButtonText}>
+                    {loading ? 'Starting...' : 'Start Fast'}
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                onPress={onShowTemplateSelector} 
+                disabled={loading || !isOnline}
+                style={[styles.templatesButton, { 
+                  backgroundColor: '#8B5CF6',
+                  opacity: (loading || !isOnline) ? 0.5 : 1 
+                }]}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.templatesButtonIcon}>📋</Text>
+                <Text style={styles.templatesButtonText}>Templates</Text>
+              </TouchableOpacity>
+            </View>
           )
         ) : (
-          <>
-            <button 
-              onClick={onPauseFast} 
+          // Active state - show Pause and Break Fast
+          <View style={styles.controlRow}>
+            <TouchableOpacity 
+              onPress={onPauseFast} 
               disabled={loading || !isOnline}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-4 rounded-2xl font-semibold transition-all flex items-center shadow-lg disabled:opacity-50"
+              style={[styles.pauseButton, { 
+                backgroundColor: theme.warning,
+                opacity: (loading || !isOnline) ? 0.5 : 1 
+              }]}
+              activeOpacity={0.8}
             >
-              <Pause className="w-5 h-5 mr-2" />Pause
-            </button>
-            <button 
-              onClick={onStopConfirmation} 
+              <PauseIcon color="white" />
+              <Text style={styles.pauseButtonText}>Pause</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              onPress={onStopConfirmation} 
               disabled={loading || !isOnline}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-2xl font-semibold transition-all shadow-lg disabled:opacity-50"
+              style={[styles.breakFastButton, { 
+                backgroundColor: theme.success,
+                opacity: (loading || !isOnline) ? 0.5 : 1 
+              }]}
+              activeOpacity={0.8}
             >
-              🍎 Break Fast
-            </button>
-          </>
+              <Text style={styles.breakFastIcon}>🍎</Text>
+              <Text style={styles.breakFastText}>Break Fast</Text>
+            </TouchableOpacity>
+          </View>
         )}
-      </div>
+      </View>
       
       {/* Offline Warning */}
       {!isOnline && (
-        <div className="text-center mt-3">
-          <p className="text-xs text-orange-600">
+        <View style={styles.offlineWarning}>
+          <Text style={styles.offlineText}>
             Some features disabled while offline
-          </p>
-        </div>
+          </Text>
+        </View>
       )}
 
       {/* Celebration Toggle */}
       {isActive && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={onToggleCelebrations}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              showCelebrations 
-                ? resolvedTheme === 'dark'
-                  ? 'bg-blue-900/20 text-blue-400 hover:bg-blue-900/30'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                : resolvedTheme === 'dark'
-                ? 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-            }`}
+        <View style={styles.celebrationToggle}>
+          <TouchableOpacity
+            onPress={onToggleCelebrations}
+            style={[styles.celebrationButton, { 
+              backgroundColor: showCelebrations 
+                ? theme.primary + '20' 
+                : theme.backgroundSecondary
+            }]}
+            activeOpacity={0.7}
           >
-            {showCelebrations ? '🎉 Celebrations ON' : '🔇 Celebrations OFF'}
-          </button>
-        </div>
+            <Text style={[styles.celebrationText, { 
+              color: showCelebrations ? theme.primary : theme.textSecondary 
+            }]}>
+              {showCelebrations ? '🎉 Celebrations ON' : '🔇 Celebrations OFF'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       )}
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  templatesSection: {
+    marginBottom: 16,
+  },
+  templatesLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  templatesScroll: {
+    flexDirection: 'row',
+  },
+  templateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginRight: 8,
+    borderWidth: 1,
+    gap: 8,
+  },
+  templateIcon: {
+    fontSize: 18,
+  },
+  templateName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  templateDuration: {
+    fontSize: 12,
+  },
+  mainControls: {
+    alignItems: 'center',
+  },
+  controlRow: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  startButtonContainer: {
+    flex: 1,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#3B82F6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  startButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    gap: 12,
+  },
+  startButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  resumeButtonContainer: {
+    flex: 2,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#3B82F6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  resumeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    gap: 12,
+  },
+  resumeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  templatesButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    borderRadius: 16,
+    gap: 8,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  templatesButtonIcon: {
+    fontSize: 20,
+  },
+  templatesButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  pauseButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  pauseButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  stopButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  stopButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  breakFastButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  breakFastIcon: {
+    fontSize: 18,
+  },
+  breakFastText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  offlineWarning: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  offlineText: {
+    fontSize: 12,
+    color: '#F97316',
+  },
+  celebrationToggle: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  celebrationButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  celebrationText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
 
 export default TimerControls;
