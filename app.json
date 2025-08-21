@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "H2flOw",
+    "name": "H2Flow",
     "slug": "h2flow-fasting",
     "version": "1.0.0",
+    "sdkVersion": "53.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
