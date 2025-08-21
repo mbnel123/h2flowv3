@@ -1,4 +1,4 @@
-// src/screens/HistoryScreen.tsx
+// src/screens/WaterScreen.tsx
 import React from 'react';
 import { View, Text, SafeAreaView, StyleSheet, useColorScheme } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,6 +20,45 @@ const colors = {
   }
 };
 
-const HistoryScreen: React.FC = () => {
+const WaterScreen: React.FC = () => {
   const isDark = useColorScheme() === 'dark';
-  con
+  const theme = isDark ? colors.dark : colors.light;
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.gradient[0] }]}>
+      <LinearGradient colors={theme.gradient} style={styles.container}>
+        <View style={styles.content}>
+          <Text style={[styles.title, { color: theme.text }]}>💧 Water Tracking</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+            Coming soon: Full water intake tracking
+          </Text>
+        </View>
+      </LinearGradient>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  subtitle: {
+    fontSize: 18,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+});
+
+export default WaterScreen;
