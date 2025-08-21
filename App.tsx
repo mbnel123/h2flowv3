@@ -1,25 +1,47 @@
-// In H2FlowTest/App.tsx - vervang met:
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-export default function App() {
+const Tab = createBottomTabNavigator();
+
+function TimerScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>H2Flow Mobile! 🚀</Text>
+    <View style={styles.screen}>
+      <Text style={styles.text}>Timer Screen 🕐</Text>
     </View>
   );
 }
 
+function WaterScreen() {
+  return (
+    <View style={styles.screen}>
+      <Text style={styles.text}>Water Screen 💧</Text>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Tab.Navigator>
+        <Tab.Screen name="Timer" component={TimerScreen} />
+        <Tab.Screen name="Water" component={WaterScreen} />
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#F0F0F0',
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#333',
   },
 });
