@@ -41,7 +41,7 @@ const TimerHeader: React.FC<TimerHeaderProps> = ({
             <h1 className={`text-2xl font-bold transition-theme ${
               resolvedTheme === 'dark' ? 'text-gray-100' : 'text-gray-800'
             }`}>
-              H2Flow
+              H2flOw
             </h1>
             <p className={`text-sm font-medium transition-theme ${
               resolvedTheme === 'dark' ? 'text-gray-400' : 'text-gray-500'
