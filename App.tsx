@@ -1,10 +1,11 @@
+// In H2FlowTest/App.tsx - vervang met:
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Hello H2Flow! 🚀</Text>
+      <Text style={styles.text}>H2Flow Mobile! 🚀</Text>
     </View>
   );
 }
@@ -14,11 +15,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#3B82F6',
   },
   text: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: 'white',
   },
 });
