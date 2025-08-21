@@ -1,44 +1,81 @@
-import React from 'react';
-import { View, Text, StyleSheet, StatusBar, useColorScheme } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { LinearGradient } from 'expo-linear-gradient';
-
-const Tab = createBottomTabNavigator();
-
-// Theme colors matching your webapp
-const colors = {
-  light: {
-    primary: '#3B82F6',
-    secondary: '#1D4ED8', 
-    background: '#FFFFFF',
-    backgroundSecondary: '#F9FAFB',
-    backgroundTertiary: '#F3F4F6',
-    text: '#111827',
-    textSecondary: '#6B7280',
-    border: '#E5E7EB',
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-  },
-  dark: {
-    primary: '#3B82F6',
-    secondary: '#1D4ED8',
-    background: '#111827',
-    backgroundSecondary: '#1F2937',
-    backgroundTertiary: '#374151',
-    text: '#F9FAFB',
-    textSecondary: '#9CA3AF',
-    border: '#374151',
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-  }
-};
-
 function TimerScreen() {
   const isDark = useColorScheme() === 'dark';
   const theme = isDark ? colors.dark : colors.light;
+  
+  // Mock timer state - we'll replace this with real logic later
+  const [isActive, setIsActive] = React.useState(false);
+  const [elapsedTime, setElapsedTime] = React.useState(0);
+  const [targetHours, setTargetHours] = React.useState(24);
+  const [loading, setLoading] = React.useState(false);
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return {
+      hours: hours.toString().padStart(2, '0'),
+      minutes: minutes.toString().padStart(2, '0'),
+      seconds: remainingSeconds.toString().padStart(2, '0')
+    };
+  };
+
+  // Calculate progress percentage
+  const getProgress = () => {
+    const targetSeconds = targetHours * 3600;
+    return Math.min((elapsedTime / targetSeconds) * 100, 100);
+  };
+
+  // Fasting phases
+  const fastingPhases = [
+    { hours: 0, title: "Fast Begins", description: "Using glucose from last meal", emoji: "🌟" },
+    { hours: 6, title: "Glycogen Use", description: "Using stored energy", emoji: "⚡" },
+    { hours: 12, title: "Ketosis Start", description: "Fat burning begins", emoji: "🔥" },
+    { hours: 18, title: "Deep Ketosis", description: "Mental clarity improves", emoji: "🧠" },
+    { hours: 24, title: "Autophagy", description: "Cellular repair starts", emoji: "🔄" },
+    { hours: 48, title: "Deep Autophagy", description: "Maximum cleansing", emoji: "✨" },
+    { hours: 72, title: "Immune Reset", description: "Complete renewal", emoji: "🛡️" }
+  ];
+
+  // Get current phase
+  const getCurrentPhase = () => {
+    const hours = elapsedTime / 3600;
+    return fastingPhases.slice().reverse().find(phase => hours >= phase.hours) || fastingPhases[0];
+  };
+
+  // Get next phase
+  const getNextPhase = () => {
+    const hours = elapsedTime / 3600;
+    return fastingPhases.find(phase => hours < phase.hours);
+  };
+
+  // Timer logic
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (isActive) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isActive]);
+
+  const handleStartFast = () => {
+    setIsActive(true);
+  };
+
+  const handleStopFast = () => {
+    setIsActive(false);
+    setElapsedTime(0);
+  };
+
+  const currentPhase = getCurrentPhase();
+  const nextPhase = getNextPhase();
+  const timeDisplay = formatTime(elapsedTime);
 
   return (
     <LinearGradient
@@ -65,360 +102,112 @@ function TimerScreen() {
 
       {/* Main Content */}
       <View style={styles.content}>
-        {/* Timer Circle Placeholder */}
-        <View style={[styles.timerContainer, { borderColor: theme.border }]}>
-          <View style={[styles.timerCircle, { backgroundColor: theme.backgroundSecondary }]}>
-            <Text style={[styles.timerText, { color: theme.text }]}>00:00:00</Text>
-            <Text style={[styles.timerSubtext, { color: theme.textSecondary }]}>
-              Ready to start
+        {/* Timer Circle */}
+        <View style={styles.timerContainer}>
+          <View style={[styles.timerCircle, { backgroundColor: theme.backgroundSecondary, borderColor: theme.primary }]}>
+            <Text style={[styles.timerText, { color: theme.text }]}>
+              {timeDisplay.hours}:{timeDisplay.minutes}:{timeDisplay.seconds}
             </Text>
+            <Text style={[styles.timerSubtext, { color: theme.textSecondary }]}>
+              {isActive ? `${Math.round(getProgress())}% complete` : 'Ready to start'}
+            </Text>
+            {isActive && (
+              <Text style={[styles.targetText, { color: theme.textSecondary }]}>
+                Target: {targetHours}h
+              </Text>
+            )}
           </View>
+          
+          {/* Progress indicator */}
+          {isActive && (
+            <View style={[styles.progressIndicator, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+              <Text style={[styles.progressText, { color: theme.primary }]}>
+                {Math.round(getProgress())}%
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Phase Info */}
         <View style={[styles.phaseCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
           <Text style={[styles.phaseTitle, { color: theme.text }]}>
-            🌟 Fast Begins
+            {currentPhase.emoji} {currentPhase.title}
           </Text>
           <Text style={[styles.phaseDescription, { color: theme.textSecondary }]}>
-            Using glucose from last meal
+            {currentPhase.description}
           </Text>
-        </View>
-
-        {/* Start Button */}
-        <LinearGradient
-          colors={['#3B82F6', '#1D4ED8']}
-          style={styles.startButton}
-        >
-          <Text style={styles.startButtonText}>Start Fast</Text>
-        </LinearGradient>
-      </View>
-    </LinearGradient>
-  );
-}
-
-function WaterScreen() {
-  const isDark = useColorScheme() === 'dark';
-  const theme = isDark ? colors.dark : colors.light;
-
-  return (
-    <LinearGradient
-      colors={isDark 
-        ? ['#111827', '#1F2937', '#111827'] 
-        : ['#F9FAFB', '#F3F4F6', '#F9FAFB']
-      }
-      style={styles.screen}
-    >
-      <StatusBar 
-        barStyle={isDark ? 'light-content' : 'dark-content'} 
-        backgroundColor={theme.background}
-      />
-      
-      {/* Header */}
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          Water Intake
-        </Text>
-      </View>
-
-      {/* Main Content */}
-      <View style={styles.content}>
-        {/* Water Progress */}
-        <View style={[styles.waterContainer, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-          <Text style={[styles.waterAmount, { color: theme.primary }]}>0ml</Text>
-          <Text style={[styles.waterGoal, { color: theme.textSecondary }]}>of 2500ml goal</Text>
           
-          {/* Progress Bar */}
-          <View style={[styles.progressBar, { backgroundColor: theme.backgroundTertiary }]}>
-            <View style={[styles.progressFill, { backgroundColor: theme.primary, width: '0%' }]} />
-          </View>
-        </View>
-
-        {/* Quick Add Buttons */}
-        <View style={styles.quickAddContainer}>
-          {[250, 500, 750].map(amount => (
-            <View 
-              key={amount}
-              style={[styles.quickAddButton, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}
-            >
-              <Text style={[styles.quickAddText, { color: theme.text }]}>+{amount}ml</Text>
+          {isActive && (
+            <View style={styles.phaseStats}>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: theme.text }]}>
+                  {Math.floor(elapsedTime / 3600)}h
+                </Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                  Elapsed
+                </Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={[styles.statValue, { color: theme.text }]}>
+                  0ml
+                </Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>
+                  Water today
+                </Text>
+              </View>
             </View>
-          ))}
+          )}
+        </View>
+
+        {/* Next Phase Info */}
+        {isActive && nextPhase && (
+          <View style={[styles.nextPhaseCard, { backgroundColor: theme.primary + '20', borderColor: theme.primary + '40' }]}>
+            <Text style={[styles.nextPhaseTitle, { color: theme.primary }]}>
+              Next: {nextPhase.emoji} {nextPhase.title}
+            </Text>
+            <Text style={[styles.nextPhaseDescription, { color: theme.primary }]}>
+              In {Math.max(0, Math.floor((nextPhase.hours * 3600 - elapsedTime) / 3600))}h {Math.max(0, Math.floor(((nextPhase.hours * 3600 - elapsedTime) % 3600) / 60))}m
+            </Text>
+          </View>
+        )}
+
+        {/* Control Buttons */}
+        <View style={styles.controlButtons}>
+          {!isActive ? (
+            <LinearGradient
+              colors={['#3B82F6', '#1D4ED8']}
+              style={styles.startButton}
+            >
+              <TouchableOpacity 
+                onPress={handleStartFast}
+                disabled={loading}
+                style={styles.buttonTouchable}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.startButtonText}>Start Fast</Text>
+              </TouchableOpacity>
+            </LinearGradient>
+          ) : (
+            <View style={styles.activeControls}>
+              <TouchableOpacity 
+                onPress={() => setIsActive(false)}
+                style={[styles.pauseButton, { backgroundColor: theme.warning }]}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.pauseButtonText, { color: 'white' }]}>Pause</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                onPress={handleStopFast}
+                style={[styles.stopButton, { backgroundColor: theme.error }]}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.stopButtonText, { color: 'white' }]}>Stop Fast</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
     </LinearGradient>
   );
 }
-
-function HistoryScreen() {
-  const isDark = useColorScheme() === 'dark';
-  const theme = isDark ? colors.dark : colors.light;
-
-  return (
-    <LinearGradient
-      colors={isDark 
-        ? ['#111827', '#1F2937', '#111827'] 
-        : ['#F9FAFB', '#F3F4F6', '#F9FAFB']
-      }
-      style={styles.screen}
-    >
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          Fasting History
-        </Text>
-      </View>
-      
-      <View style={styles.content}>
-        <View style={[styles.emptyState, { backgroundColor: theme.backgroundSecondary }]}>
-          <Text style={[styles.emptyStateText, { color: theme.textSecondary }]}>
-            📊 No fasting sessions yet
-          </Text>
-        </View>
-      </View>
-    </LinearGradient>
-  );
-}
-
-function SettingsScreen() {
-  const isDark = useColorScheme() === 'dark';
-  const theme = isDark ? colors.dark : colors.light;
-
-  return (
-    <LinearGradient
-      colors={isDark 
-        ? ['#111827', '#1F2937', '#111827'] 
-        : ['#F9FAFB', '#F3F4F6', '#F9FAFB']
-      }
-      style={styles.screen}
-    >
-      <View style={[styles.header, { borderBottomColor: theme.border }]}>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>
-          Settings
-        </Text>
-      </View>
-      
-      <View style={styles.content}>
-        <View style={[styles.settingsCard, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-          <Text style={[styles.settingsTitle, { color: theme.text }]}>
-            ⚙️ App Settings
-          </Text>
-          <Text style={[styles.settingsSubtitle, { color: theme.textSecondary }]}>
-            Notifications, themes, and more
-          </Text>
-        </View>
-      </View>
-    </LinearGradient>
-  );
-}
-
-const TabIcon = ({ name, focused }: { name: string, focused: boolean }) => {
-  const isDark = useColorScheme() === 'dark';
-  const theme = isDark ? colors.dark : colors.light;
-  
-  const icons = {
-    Timer: '⏱️',
-    Water: '💧', 
-    History: '📊',
-    Settings: '⚙️'
-  };
-
-  return (
-    <Text style={{ 
-      fontSize: 24, 
-      opacity: focused ? 1 : 0.6,
-      color: focused ? theme.primary : theme.textSecondary 
-    }}>
-      {icons[name as keyof typeof icons]}
-    </Text>
-  );
-};
-
-export default function App() {
-  const isDark = useColorScheme() === 'dark';
-  const theme = isDark ? colors.dark : colors.light;
-
-  return (
-    <NavigationContainer>
-      <Tab.Navigator
-        screenOptions={({ route }) => ({
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon name={route.name} focused={focused} />
-          ),
-          tabBarStyle: {
-            backgroundColor: theme.background,
-            borderTopColor: theme.border,
-            borderTopWidth: 1,
-            paddingBottom: 8,
-            paddingTop: 8,
-            height: 80,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            fontWeight: '500',
-            marginTop: 4,
-          },
-          tabBarActiveTintColor: theme.primary,
-          tabBarInactiveTintColor: theme.textSecondary,
-        })}
-      >
-        <Tab.Screen name="Timer" component={TimerScreen} />
-        <Tab.Screen name="Water" component={WaterScreen} />
-        <Tab.Screen name="History" component={HistoryScreen} />
-        <Tab.Screen name="Settings" component={SettingsScreen} />
-      </Tab.Navigator>
-    </NavigationContainer>
-  );
-}
-
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  syncIndicator: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  syncText: {
-    fontSize: 8,
-    color: 'white',
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    alignItems: 'center',
-  },
-  timerContainer: {
-    alignItems: 'center',
-    marginVertical: 40,
-  },
-  timerCircle: {
-    width: 280,
-    height: 280,
-    borderRadius: 140,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 8,
-    borderColor: '#3B82F6',
-  },
-  timerText: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  timerSubtext: {
-    fontSize: 16,
-  },
-  phaseCard: {
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    marginBottom: 30,
-    width: '100%',
-    alignItems: 'center',
-  },
-  phaseTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  phaseDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  startButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 12,
-    width: '100%',
-    alignItems: 'center',
-  },
-  startButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  waterContainer: {
-    padding: 30,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    width: '100%',
-    marginBottom: 30,
-  },
-  waterAmount: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  waterGoal: {
-    fontSize: 16,
-    marginBottom: 20,
-  },
-  progressBar: {
-    width: '100%',
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
-  },
-  quickAddContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    gap: 12,
-  },
-  quickAddButton: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  quickAddText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  emptyState: {
-    padding: 40,
-    borderRadius: 16,
-    alignItems: 'center',
-    width: '100%',
-  },
-  emptyStateText: {
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  settingsCard: {
-    padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    width: '100%',
-  },
-  settingsTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  settingsSubtitle: {
-    fontSize: 14,
-  },
-});
