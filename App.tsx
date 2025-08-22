@@ -3,12 +3,14 @@ import { useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
+// FIREBASE INITIALIZATION - Add this FIRST before other imports
+import './src/firebase/config';
+
 // Import screens
 import TimerScreen from './src/screens/TimerScreen';
 import WaterScreen from './src/screens/WaterScreen'; 
 import HistoryScreen from './src/screens/HistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
-
 // Import components
 import TabIcon from './src/components/TabIcon';
 
