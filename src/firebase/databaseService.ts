@@ -15,8 +15,9 @@ import {
   DocumentSnapshot,
   QuerySnapshot
 } from 'firebase/firestore';
-import { db } from './config.js';
-import { errorService } from '../services/errorService.ts';
+// FIXED: Verwijder .js extensie voor React Native
+import { db } from './config';
+import { errorService } from '../services/errorService';
 
 // Fast interface
 export interface Fast {
