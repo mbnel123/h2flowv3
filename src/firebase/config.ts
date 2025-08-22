@@ -1,7 +1,7 @@
 // src/firebase/config.ts
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getFirestore, initializeFirestore } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -37,6 +37,7 @@ try {
   }
 } catch (error) {
   // If auth is already initialized, get the existing instance
+  console.warn('⚠️ Firebase Auth already initialized, using existing instance');
   auth = getAuth(app);
 }
 
@@ -48,6 +49,7 @@ try {
   });
 } catch (error) {
   // If already initialized, get existing instance
+  console.warn('⚠️ Firestore already initialized, using existing instance');
   db = getFirestore(app);
 }
 
@@ -59,5 +61,6 @@ console.log('🔥 Firebase initialized:', {
   appName: app.name
 });
 
+// Type-safe exports
 export { auth, db };
 export default app;
