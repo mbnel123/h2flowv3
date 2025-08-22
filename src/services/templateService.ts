@@ -1,4 +1,5 @@
 // src/services/templateService.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface FastTemplate {
   id: string;
@@ -30,6 +31,7 @@ class TemplateService {
   private static instance: TemplateService;
   private templates: Map<string, FastTemplate> = new Map();
   private listeners: ((templates: FastTemplate[]) => void)[] = [];
+  private isInitialized = false;
 
   static getInstance(): TemplateService {
     if (!TemplateService.instance) {
@@ -39,15 +41,24 @@ class TemplateService {
   }
 
   constructor() {
+    this.initialize();
+  }
+
+  private async initialize() {
+    if (this.isInitialized) return;
+    
     this.loadDefaultTemplates();
-    this.loadUserTemplates();
+    await this.loadUserTemplates();
+    this.isInitialized = true;
   }
 
   // Subscribe to template changes
   subscribe(listener: (templates: FastTemplate[]) => void): () => void {
     this.listeners.push(listener);
-    // Send initial data
-    listener(this.getAllTemplates());
+    // Send initial data (async to ensure initialization)
+    this.initialize().then(() => {
+      listener(this.getAllTemplates());
+    });
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
     };
@@ -157,10 +168,10 @@ class TemplateService {
     console.log('✅ Default templates loaded:', defaultTemplates.length);
   }
 
-  // Load user templates from localStorage
-  private loadUserTemplates(): void {
+  // Load user templates from AsyncStorage
+  private async loadUserTemplates(): Promise<void> {
     try {
-      const stored = localStorage.getItem('h2flow_templates');
+      const stored = await AsyncStorage.getItem('h2flow_templates');
       if (stored) {
         const userTemplates: FastTemplate[] = JSON.parse(stored);
         userTemplates.forEach(template => {
@@ -179,11 +190,11 @@ class TemplateService {
     }
   }
 
-  // Save user templates to localStorage
-  private saveUserTemplates(): void {
+  // Save user templates to AsyncStorage
+  private async saveUserTemplates(): Promise<void> {
     try {
       const userTemplates = this.getUserTemplates();
-      localStorage.setItem('h2flow_templates', JSON.stringify(userTemplates));
+      await AsyncStorage.setItem('h2flow_templates', JSON.stringify(userTemplates));
       console.log('✅ User templates saved:', userTemplates.length);
     } catch (error) {
       console.error('❌ Failed to save user templates:', error);
@@ -191,10 +202,10 @@ class TemplateService {
   }
 
   // Create new template
-  createTemplate(
+  async createTemplate(
     userId: string,
     templateData: Omit<FastTemplate, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'usageCount' | 'isDefault'>
-  ): FastTemplate {
+  ): Promise<FastTemplate> {
     const template: FastTemplate = {
       ...templateData,
       id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -207,7 +218,7 @@ class TemplateService {
     };
 
     this.templates.set(template.id, template);
-    this.saveUserTemplates();
+    await this.saveUserTemplates();
     this.notifyListeners();
 
     console.log('✅ Template created:', template.name);
@@ -215,7 +226,7 @@ class TemplateService {
   }
 
   // Update template
-  updateTemplate(templateId: string, updates: Partial<FastTemplate>): FastTemplate | null {
+  async updateTemplate(templateId: string, updates: Partial<FastTemplate>): Promise<FastTemplate | null> {
     const template = this.templates.get(templateId);
     if (!template || template.isDefault) {
       console.warn('❌ Cannot update default template or template not found');
@@ -231,7 +242,7 @@ class TemplateService {
     };
 
     this.templates.set(templateId, updatedTemplate);
-    this.saveUserTemplates();
+    await this.saveUserTemplates();
     this.notifyListeners();
 
     console.log('✅ Template updated:', updatedTemplate.name);
@@ -239,7 +250,7 @@ class TemplateService {
   }
 
   // Delete template
-  deleteTemplate(templateId: string): boolean {
+  async deleteTemplate(templateId: string): Promise<boolean> {
     const template = this.templates.get(templateId);
     if (!template) {
       console.warn('❌ Template not found');
@@ -252,7 +263,7 @@ class TemplateService {
     }
 
     this.templates.delete(templateId);
-    this.saveUserTemplates();
+    await this.saveUserTemplates();
     this.notifyListeners();
 
     console.log('✅ Template deleted:', template.name);
@@ -260,7 +271,7 @@ class TemplateService {
   }
 
   // Use template (increment usage count)
-  useTemplate(templateId: string): FastTemplate | null {
+  async useTemplate(templateId: string): Promise<FastTemplate | null> {
     const template = this.templates.get(templateId);
     if (!template) {
       console.warn('❌ Template not found');
@@ -276,7 +287,7 @@ class TemplateService {
 
     this.templates.set(templateId, updatedTemplate);
     if (!template.isDefault) {
-      this.saveUserTemplates();
+      await this.saveUserTemplates();
     }
     this.notifyListeners();
 
@@ -369,14 +380,14 @@ class TemplateService {
   }
 
   // Duplicate template (create copy)
-  duplicateTemplate(templateId: string, userId: string, newName?: string): FastTemplate | null {
+  async duplicateTemplate(templateId: string, userId: string, newName?: string): Promise<FastTemplate | null> {
     const original = this.templates.get(templateId);
     if (!original) {
       console.warn('❌ Template not found for duplication');
       return null;
     }
 
-    const duplicate = this.createTemplate(userId, {
+    const duplicate = await this.createTemplate(userId, {
       name: newName || `${original.name} (Copy)`,
       description: original.description,
       icon: original.icon,
@@ -398,12 +409,12 @@ class TemplateService {
     return JSON.stringify(userTemplates, null, 2);
   }
 
-  importTemplates(userId: string, templatesJson: string): boolean {
+  async importTemplates(userId: string, templatesJson: string): Promise<boolean> {
     try {
       const templates: FastTemplate[] = JSON.parse(templatesJson);
       
-      templates.forEach(template => {
-        this.createTemplate(userId, {
+      for (const template of templates) {
+        await this.createTemplate(userId, {
           name: `${template.name} (Imported)`,
           description: template.description,
           icon: template.icon,
@@ -414,7 +425,7 @@ class TemplateService {
           tags: [...(template.tags || []), 'imported'],
           isCustom: true
         });
-      });
+      }
 
       console.log('✅ Templates imported:', templates.length);
       return true;
@@ -437,13 +448,13 @@ class TemplateService {
   }
 
   // Clear all user templates (for debugging)
-  clearUserTemplates(): void {
+  async clearUserTemplates(): Promise<void> {
     const userTemplates = this.getUserTemplates();
     userTemplates.forEach(template => {
       this.templates.delete(template.id);
     });
     
-    localStorage.removeItem('h2flow_templates');
+    await AsyncStorage.removeItem('h2flow_templates');
     this.notifyListeners();
     
     console.log('🗑️ All user templates cleared');
