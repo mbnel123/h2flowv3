@@ -1,7 +1,8 @@
 // src/components/TemplateSelector.tsx
 import React, { useState, useEffect } from 'react';
-import { Search, Star, Clock, Droplets, Plus, Copy, Trash2, Edit3, X } from 'lucide-react';
-import { FastTemplate, templateService, TemplateStats } from '../services/templateService.ts';
+// Vervang lucide-react met lucide-react-native
+import { Search, Star, Clock, Droplets, Plus, Copy, Trash2, Edit3, X } from 'lucide-react-native';
+import { FastTemplate, templateService, TemplateStats } from '../services/templateService';
 
 interface TemplateSelectorProps {
   userId: string;
@@ -111,7 +112,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 onClick={() => setShowCreateForm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X size={24} />
               </button>
             </div>
           </div>
@@ -315,7 +316,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                               }}
                               className="p-1 text-gray-400 hover:text-blue-600 transition-colors rounded"
                             >
-                              <Edit3 className="w-3 h-3" />
+                              <Edit3 size={12} />
                             </button>
                             <button
                               onClick={(e) => {
@@ -324,7 +325,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                               }}
                               className="p-1 text-gray-400 hover:text-red-600 transition-colors rounded"
                             >
-                              <Trash2 className="w-3 h-3" />
+                              <Trash2 size={12} />
                             </button>
                           </>
                         )}
@@ -335,7 +336,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                           }}
                           className="p-1 text-gray-400 hover:text-green-600 transition-colors rounded"
                         >
-                          <Copy className="w-3 h-3" />
+                          <Copy size={12} />
                         </button>
                       </div>
                     )}
@@ -348,7 +349,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
                   {/* Duration */}
                   <div className={`inline-flex items-center px-3 py-1 rounded-lg text-sm font-bold mb-3 border ${getDurationColor(template.duration)}`}>
-                    <Clock className="w-3 h-3 mr-1" />
+                    <Clock size={12} className="mr-1" />
                     {template.duration}h
                   </div>
 
@@ -356,14 +357,14 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   <div className="space-y-2">
                     {template.waterGoal && (
                       <div className="flex items-center text-xs text-gray-600">
-                        <Droplets className="w-3 h-3 mr-2 text-blue-500 flex-shrink-0" />
+                        <Droplets size={12} className="mr-2 text-blue-500 flex-shrink-0" />
                         <span><strong>{template.waterGoal}ml</strong> water</span>
                       </div>
                     )}
                     
                     {template.usageCount > 0 && (
                       <div className="flex items-center text-xs text-gray-600">
-                        <Star className="w-3 h-3 mr-2 text-yellow-500 flex-shrink-0" />
+                        <Star size={12} className="mr-2 text-yellow-500 flex-shrink-0" />
                         <span>Used <strong>{template.usageCount}</strong>x</span>
                       </div>
                     )}
@@ -400,7 +401,7 @@ const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               onClick={() => setShowCreateForm(true)}
               className="flex items-center text-blue-600 hover:text-blue-700 transition-colors font-medium"
             >
-              <Plus className="w-5 h-5 mr-2" />
+              <Plus size={20} className="mr-2" />
               Create Custom Template
             </button>
             
