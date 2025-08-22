@@ -1,11 +1,8 @@
-// src/firebase/config.ts
+// src/firebase/config.ts - SIMPELE VERSIE ZONDER ASYNCSTORAGE
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD8v4eIC6mtQWh8cn_l3R2Tg7uCXjwsfik",
   authDomain: "h2-flow.firebaseapp.com",
@@ -16,7 +13,7 @@ const firebaseConfig = {
   measurementId: "G-E61BHHQ29Y"
 };
 
-// Initialize Firebase App (prevent multiple initialization)
+// Initialize Firebase App
 let app;
 if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
@@ -24,43 +21,10 @@ if (getApps().length === 0) {
   app = getApp();
 }
 
-// Initialize Auth with proper React Native support
-let auth;
-try {
-  if (Platform.OS === 'web') {
-    auth = getAuth(app);
-  } else {
-    // For React Native, always use initializeAuth with persistence
-    auth = initializeAuth(app, {
-      persistence: getReactNativePersistence(AsyncStorage)
-    });
-  }
-} catch (error) {
-  // If auth is already initialized, get the existing instance
-  console.warn('⚠️ Firebase Auth already initialized, using existing instance');
-  auth = getAuth(app);
-}
+// SIMPELE INITIALIZATION - geen AsyncStorage problemen
+export const auth = getAuth(app);
+export const db = getFirestore(app);
 
-// Initialize Firestore with React Native optimizations
-let db;
-try {
-  db = initializeFirestore(app, {
-    experimentalForceLongPolling: true, // Better for React Native
-  });
-} catch (error) {
-  // If already initialized, get existing instance
-  console.warn('⚠️ Firestore already initialized, using existing instance');
-  db = getFirestore(app);
-}
+console.log('🔥 Firebase initialized (SIMPLE VERSION)');
 
-// Debug logging
-console.log('🔥 Firebase initialized:', {
-  platform: Platform.OS,
-  authInitialized: !!auth,
-  firestoreInitialized: !!db,
-  appName: app.name
-});
-
-// Type-safe exports
-export { auth, db };
 export default app;
