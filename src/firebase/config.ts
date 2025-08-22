@@ -1,6 +1,7 @@
-import { initializeApp } from 'firebase/app';
+// src/firebase/config.ts
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, initializeFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, connectFirestoreEmulator } from 'firebase/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
@@ -15,22 +16,47 @@ const firebaseConfig = {
   measurementId: "G-E61BHHQ29Y"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-
-// Initialize Auth with persistence for React Native
-let auth;
-if (Platform.OS === 'web') {
-  auth = getAuth(app);
+// Initialize Firebase App (prevent multiple initialization)
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
 } else {
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage)
-  });
+  app = getApp();
 }
 
-// Initialize Firestore
-const db = initializeFirestore(app, {
-  experimentalForceLongPolling: true, // For better React Native support
+// Initialize Auth with proper React Native support
+let auth;
+try {
+  if (Platform.OS === 'web') {
+    auth = getAuth(app);
+  } else {
+    // For React Native, always use initializeAuth with persistence
+    auth = initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage)
+    });
+  }
+} catch (error) {
+  // If auth is already initialized, get the existing instance
+  auth = getAuth(app);
+}
+
+// Initialize Firestore with React Native optimizations
+let db;
+try {
+  db = initializeFirestore(app, {
+    experimentalForceLongPolling: true, // Better for React Native
+  });
+} catch (error) {
+  // If already initialized, get existing instance
+  db = getFirestore(app);
+}
+
+// Debug logging
+console.log('🔥 Firebase initialized:', {
+  platform: Platform.OS,
+  authInitialized: !!auth,
+  firestoreInitialized: !!db,
+  appName: app.name
 });
 
 export { auth, db };
